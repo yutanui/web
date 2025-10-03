@@ -1,12 +1,20 @@
 import { User } from "./models/User";
 
 
-const user = new User({ name: "Yutthasit", age: 20 });
+const user = new User({ name: "Nui", age: 20 });
 
-console.log(user.get("name"));
-console.log(user.get("age"));
+user.on("change", () => {
+    console.log("Change event triggered");
+});
 
+user.on("change", () => {
+    console.log("Change 2 event triggered");
+});
 
-user.set({ age: 21 });
+user.on("save", () => {
+    console.log("Save event triggered");
+});
 
-console.log(user.get("age"));
+console.log(user);
+
+user.trigger("change");
