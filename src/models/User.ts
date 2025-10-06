@@ -1,16 +1,14 @@
 import axios from "axios";
 
+
 export interface IUser {
-    id?: number;
+    id?: string;
     name?: string;
     age?: number;
 }
 
-type Callback = () => void;
-
 export class User {
 
-    events : { [key : string] : Callback[] } = {};
 
     constructor(private data: IUser) {}
 
@@ -21,22 +19,6 @@ export class User {
 
     set(prop : IUser) : void {
         Object.assign(this.data, prop);
-    }
-
-    on(eventName: string, callback: Callback) : void {
-        const handlers = this.events[eventName] || [];
-        handlers.push(callback);
-        this.events[eventName] = handlers;
-    }
-
-    trigger(eventName: string) : void {
-        const handlers = this.events[eventName];
-        if (!handlers || handlers.length === 0) {
-            return;
-        }
-        handlers.forEach(callback => {
-            callback();
-        });
     }
 
     async fetch() : Promise<void> {
@@ -50,4 +32,20 @@ export class User {
             console.error("Error fetching user:", error);
         });
     }
+
+    async save() : Promise<void> {
+        const { id } = this.data;
+        if (id) {
+            await axios.put(`http://localhost:3000/users/${id}`, this.data).then((response) => {
+            }).catch((error) => {
+                console.error("Error updating user:", error);
+            });
+        } else {
+            await axios.post(`http://localhost:3000/users`, this.data).then((response) => {
+                this.set(response.data);
+            }).catch((error) => {
+                console.error("Error creating user:", error);
+            });
+        }
+    }   
 }
