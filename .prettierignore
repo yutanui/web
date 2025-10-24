@@ -1,0 +1,12 @@
+# Dependencies
+node_modules
+
+# Build outputs
+dist
+.parcel-cache
+
+# Database
+db.json
+
+# Config files
+package-lock.json

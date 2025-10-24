@@ -1,51 +1,45 @@
-import axios from "axios";
-
+import { Callback, Eventing } from './Eventing';
+import { Sync } from './Sync';
+import { Attributes } from './Attributes';
 
 export interface IUser {
-    id?: string;
-    name?: string;
-    age?: number;
+  id?: string;
+  name?: string;
+  age?: number;
 }
 
 export class User {
+  events: Eventing = new Eventing();
+  sync: Sync<IUser> = new Sync<IUser>('http://localhost:3000/users');
+  attr: Attributes<IUser>;
 
+  constructor(private data: IUser) {
+    this.attr = new Attributes<IUser>(this.data);
+  }
 
-    constructor(private data: IUser) {}
+  get(prop: keyof IUser): IUser[keyof IUser] {
+    return this.attr.get(prop);
+  }
 
-    get(prop : keyof IUser) : IUser[keyof IUser]  {
-        return this.data[prop];
+  set(prop: IUser): void {
+    this.attr.set(prop);
+  }
 
-    }
+  on(eventName: string, callback: Callback): void {
+    this.events.on(eventName, callback);
+  }
 
-    set(prop : IUser) : void {
-        Object.assign(this.data, prop);
-    }
+  trigger(eventName: string): void {
+    this.events.trigger(eventName);
+  }
 
-    async fetch() : Promise<void> {
-        if (!this.data.id) {
-            throw new Error("Cannot fetch without an id");
-        }
+  async fetch(): Promise<void> {
+     const res = await this.sync.fetch(this.data.id as string);
+     this.set(res.data);
+  }
 
-        await axios.get(`http://localhost:3000/users/${this.data.id}`).then((response) => {
-            this.set(response.data);
-        }).catch((error) => {
-            console.error("Error fetching user:", error);
-        });
-    }
-
-    async save() : Promise<void> {
-        const { id } = this.data;
-        if (id) {
-            await axios.put(`http://localhost:3000/users/${id}`, this.data).then((response) => {
-            }).catch((error) => {
-                console.error("Error updating user:", error);
-            });
-        } else {
-            await axios.post(`http://localhost:3000/users`, this.data).then((response) => {
-                this.set(response.data);
-            }).catch((error) => {
-                console.error("Error creating user:", error);
-            });
-        }
-    }   
+  async save(): Promise<void> {
+    const res = await this.sync.save(this.data);
+    this.set(res.data);
+  }
 }

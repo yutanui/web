@@ -1,6 +1,6 @@
-import { User } from "./models/User";
+import { User } from './models/User';
 
-const user = new User({ id: "1", name: "Nui", age: 20 });
+//const user = new User({ id: '1', name: 'Nui', age: 20 });
 
 /*
 user.on("change", () => {
@@ -33,7 +33,6 @@ user3.save().then(() => {
 }).catch((err) => {
     console.error(err);
 });
-
 
 
 
