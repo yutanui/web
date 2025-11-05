@@ -19,40 +19,91 @@ Both commands should be run in separate terminals for full development environme
 
 ## Architecture Overview
 
-This is a TypeScript learning project implementing a user management system with a modular, composition-based architecture.
+This is a TypeScript learning project implementing a user management system with a modular, composition-based architecture using advanced design patterns.
 
-### Core Design Pattern
-The codebase demonstrates **composition over inheritance** through reusable utility classes that can be composed into domain models:
+### Core Design Patterns
 
-- **Eventing**: Event system for pub/sub functionality (on/trigger methods)
-- **Sync**: Generic HTTP synchronization layer for CRUD operations with json-server
-- **User**: Domain model that composes Eventing and Sync instances
+#### 1. **Composition Pattern** (Primary)
+The codebase demonstrates **composition over inheritance** through reusable utility classes:
 
-### Key Architectural Points
+- **Attributes** (`src/models/Attributes.ts`): Data/state management with get/set/getAll methods
+- **Eventing** (`src/models/Eventing.ts`): Event system for pub/sub functionality (on/trigger methods)
+- **ApiSync** (`src/models/ApiSync.ts`): Generic HTTP synchronization layer for CRUD operations
+- **Model** (`src/models/Model.ts`): Generic base class composing all three utilities
+- **User** (`src/models/User.ts`): Domain model extending Model with static factory method
 
-**Sync Layer (`src/models/Sync.ts`)**
-- Generic class `Sync<T extends HasId>` for API communication
-- Hardcoded to `http://localhost:3000/users` endpoint
-- Supports fetch (GET), save (POST/PUT) operations
-- Returns AxiosResponse objects
+#### 2. **Dependency Injection Pattern**
+Model receives its dependencies (Attributes, Eventing, ApiSync) through constructor injection rather than creating them internally. This enables:
+- Loose coupling between components
+- Easy testing with mocks/stubs
+- Flexibility to swap implementations
+
+#### 3. **Delegation Pattern**
+Model acts as a facade, delegating method calls to composed objects:
+- `get()/set()` → delegates to Attributes
+- `on()/trigger()` → delegates to Eventing
+- `fetch()/save()` → delegates to ApiSync (with coordination)
+
+#### 4. **Generic Programming**
+Model is a generic class `Model<T extends HasId>` that works with any domain object type, providing:
+- Type safety across all operations
+- Reusability for different models (User, Post, Product, etc.)
+- Compile-time type checking
+
+#### 5. **Static Factory Pattern**
+User uses `User.build()` static factory instead of direct constructor, which:
+- Encapsulates complex instantiation logic
+- Ensures consistent configuration
+- Provides convenience for users
+
+#### 6. **Interface Segregation**
+Model depends on minimal interfaces (ModelAttributes, Events, Sync) rather than concrete classes, enabling flexibility and decoupling.
+
+### Component Details
+
+**Attributes Layer (`src/models/Attributes.ts`)**
+- Generic class `Attributes<T extends object>` for data management
+- Methods: `get<K>(key: K)`, `set(update: Partial<T>)`, `getAll(): T`
+- Handles internal state using Object.assign for updates
 
 **Eventing System (`src/models/Eventing.ts`)**
 - Simple event emitter with `on()` and `trigger()` methods
-- Stores callbacks in object with event name as key
-- Currently instantiated in User but not fully integrated
+- Stores callbacks in dictionary: `{ [eventName: string]: Callback[] }`
+- Fully integrated and actively used in the application
+
+**ApiSync Layer (`src/models/ApiSync.ts`)**
+- Generic class `ApiSync<T extends HasId>` for API communication
+- Configurable endpoint URL via constructor
+- `fetch(id)`: GET request to `${url}/${id}`
+- `save(data)`: POST (new) or PUT (existing) based on id presence
+- Returns AxiosResponse objects
+
+**Model Base Class (`src/models/Model.ts`)**
+- Generic class composing Attributes, Events, and Sync via dependency injection
+- Provides unified interface delegating to composed instances
+- Implements Active Record pattern: `fetch()` and `save()` coordinate sync + state updates
+- Uses TypeScript interfaces for type-safe, flexible composition
 
 **User Model (`src/models/User.ts`)**
-- Contains both `events` and `sync` instances (composition)
-- Implements its own fetch/save methods that duplicate Sync functionality
-- Uses `IUser` interface with optional id, name, age fields
-- Note: There's architectural inconsistency - User has Sync instance but doesn't use it, instead implements duplicate HTTP logic directly
+- Extends `Model<IUser>` generic base class
+- Uses static factory `User.build(user: IUser)` for instantiation
+- Factory instantiates all three utilities with proper configuration
+- IUser interface: `{ id?: string; name?: string; age?: number }`
 
 ### Current State
-The User class is in transition - it has both:
-1. Direct axios calls in its fetch/save methods
-2. Unused Sync instance that could handle the same operations
+The codebase has been successfully refactored from a monolithic User class to a clean, modular architecture:
 
-The Eventing system is also instantiated but not actively used (see commented code in `src/index.ts:6-16`).
+**Previous Design** (commented code in User.ts:24-58):
+- User directly instantiated and managed events, sync, attr
+- Hard to reuse for other domain models
+- Tight coupling between User and utilities
+
+**Current Design**:
+- Generic Model class provides reusable infrastructure
+- User simply extends Model with domain-specific type
+- Clean separation of concerns with single responsibility per class
+- Easy to add new models (Post, Comment, etc.) by extending Model
+- Eventing system is fully integrated and functional
 
 ### Backend API
 Uses json-server with `db.json` containing a `users` collection. The API is expected at `http://localhost:3000`.
