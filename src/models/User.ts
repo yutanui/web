@@ -1,6 +1,7 @@
-import { Callback, Eventing } from './Eventing';
-import { Sync } from './Sync';
+import { Model } from './Model';
+import { ApiSync } from './ApiSync';
 import { Attributes } from './Attributes';
+import { Eventing } from './Eventing';
 
 export interface IUser {
   id?: string;
@@ -8,7 +9,19 @@ export interface IUser {
   age?: number;
 }
 
-export class User {
+export class User extends Model<IUser> {
+
+    static build(user: IUser): User {
+      return new User (
+        new Attributes<IUser>(user),
+        new  Eventing(),
+        new  ApiSync<IUser>('http://localhost:3000/users'),
+
+      );
+    }
+}
+
+/*export class User {
   events: Eventing = new Eventing();
   sync: Sync<IUser> = new Sync<IUser>('http://localhost:3000/users');
   attr: Attributes<IUser>;
@@ -42,4 +55,4 @@ export class User {
     const res = await this.sync.save(this.data);
     this.attr.set(res.data);
   }
-}
+}*/
