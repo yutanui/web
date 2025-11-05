@@ -1,39 +1,45 @@
+import { Callback, Eventing } from './Eventing';
+import { Sync } from './Sync';
+import { Attributes } from './Attributes';
 
 export interface IUser {
-    name?: string;
-    age?: number;
+  id?: string;
+  name?: string;
+  age?: number;
 }
 
-type Callback = () => void;
-
 export class User {
+  events: Eventing = new Eventing();
+  sync: Sync<IUser> = new Sync<IUser>('http://localhost:3000/users');
+  attr: Attributes<IUser>;
 
-    events : { [key : string] : Callback[] } = {};
+  constructor(private data: IUser) {
+    this.attr = new Attributes<IUser>(this.data);
+  }
 
-    constructor(private data: IUser) {}
+  get(prop: keyof IUser): IUser[keyof IUser] {
+    return this.attr.get(prop);
+  }
 
-    get(prop : keyof IUser) : IUser[keyof IUser]  {
-        return this.data[prop];
+  set(prop: IUser): void {
+    this.attr.set(prop);
+  }
 
-    }
+  on(eventName: string, callback: Callback): void {
+    this.events.on(eventName, callback);
+  }
 
-    set(prop : IUser) : void {
-        Object.assign(this.data, prop);
-    }
+  trigger(eventName: string): void {
+    this.events.trigger(eventName);
+  }
 
-    on(eventName: string, callback: Callback) : void {
-        const handlers = this.events[eventName] || [];
-        handlers.push(callback);
-        this.events[eventName] = handlers;
-    }
+  async fetch(): Promise<void> {
+     const res = await this.sync.fetch(this.data.id as string);
+     this.attr.set(res.data);
+  }
 
-    trigger(eventName: string) : void {
-        const handlers = this.events[eventName];
-        if (!handlers || handlers.length === 0) {
-            return;
-        }
-        handlers.forEach(callback => {
-            callback();
-        });
-    }
+  async save(): Promise<void> {
+    const res = await this.sync.save(this.data);
+    this.attr.set(res.data);
+  }
 }
