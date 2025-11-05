@@ -35,11 +35,11 @@ export class User {
 
   async fetch(): Promise<void> {
      const res = await this.sync.fetch(this.data.id as string);
-     this.set(res.data);
+     this.attr.set(res.data);
   }
 
   async save(): Promise<void> {
     const res = await this.sync.save(this.data);
-    this.set(res.data);
+    this.attr.set(res.data);
   }
 }
