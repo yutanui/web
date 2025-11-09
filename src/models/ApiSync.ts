@@ -1,6 +1,6 @@
 import axios, { AxiosResponse } from 'axios';
 
-interface HasId {
+export interface HasId {
   id?: string;
 }
 
@@ -15,6 +15,12 @@ export class ApiSync<T extends HasId> {
     const res = await axios.get(`${this.url}/${id}`);
     return res;
   }
+
+  async fetchAll(): Promise<AxiosResponse> {
+    const res = await axios.get(`${this.url}`);
+    return res;
+  }
+
 
   async save(data: T): Promise<AxiosResponse> {
     const { id } = data;
