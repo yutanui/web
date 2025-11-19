@@ -21,7 +21,6 @@ export class ApiSync<T extends HasId> {
     return res;
   }
 
-
   async save(data: T): Promise<AxiosResponse> {
     const { id } = data;
     if (id) {

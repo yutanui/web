@@ -43,22 +43,15 @@ console.log('save end');
 
 */
 
-import { Collection } from "./models/Collection";
-import { IUser, User } from "./models/User";
+import { User } from './models/User';
 
-const collection = new Collection<IUser, User>('http://localhost:3000/users', (json: IUser) => User.build(json));
-collection.fetch().then(
-    () =>
-{
-    collection.models.map( u => {
+const collection = User.buidUserCollection();
+collection.fetch().then(() => {
+  collection.models.map(u => {
     console.log(u);
-})});
+  });
+});
 
-
-collection.models.map( u => {
-    console.log(u);
-})
-
-
-
-
+collection.models.map(u => {
+  console.log(u);
+});

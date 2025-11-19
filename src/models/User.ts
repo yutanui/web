@@ -2,6 +2,7 @@ import { Model } from './Model';
 import { ApiSync } from './ApiSync';
 import { Attributes } from './Attributes';
 import { Eventing } from './Eventing';
+import { Collection } from './Collection';
 
 export interface IUser {
   id?: string;
@@ -10,15 +11,20 @@ export interface IUser {
 }
 
 export class User extends Model<IUser> {
+  static build(user: IUser): User {
+    return new User(
+      new Attributes<IUser>(user),
+      new Eventing(),
+      new ApiSync<IUser>('http://localhost:3000/users')
+    );
+  }
 
-    static build(user: IUser): User {
-      return new User (
-        new Attributes<IUser>(user),
-        new  Eventing(),
-        new  ApiSync<IUser>('http://localhost:3000/users'),
-
-      );
-    }
+  static buidUserCollection(): Collection<IUser, User> {
+    return new Collection<IUser, User>(
+      'http://localhost:3000/users',
+      (json: IUser) => User.build(json)
+    );
+  }
 }
 
 /*export class User {
