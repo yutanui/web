@@ -1,4 +1,4 @@
-import { User } from './models/User';
+/*import { User } from './models/User';
 
 //const user = new User({ id: '1', name: 'Nui', age: 20 });
 
@@ -29,7 +29,7 @@ console.log(user2.get("age"));
 });
 */
 
-
+/*
 console.log('save start');
 //save new user
 user.save().then(() => {
@@ -41,7 +41,17 @@ user.save().then(() => {
 console.log(user);
 console.log('save end');
 
+*/
 
+import { User } from './models/User';
 
+const collection = User.buidUserCollection();
+collection.fetch().then(() => {
+  collection.models.map(u => {
+    console.log(u);
+  });
+});
 
-
+collection.models.map(u => {
+  console.log(u);
+});
