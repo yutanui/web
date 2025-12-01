@@ -43,7 +43,7 @@ console.log('save end');
 
 */
 
-import { User } from './models/User';
+/*import { User } from './models/User';
 
 const collection = User.buidUserCollection();
 collection.fetch().then(() => {
@@ -54,4 +54,10 @@ collection.fetch().then(() => {
 
 collection.models.map(u => {
   console.log(u);
-});
+});*/
+
+import { UserForm } from './views/UserForm';
+
+const userForm = new UserForm(document.getElementById('root')!);
+
+userForm.render();
